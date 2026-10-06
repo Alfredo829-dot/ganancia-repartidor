@@ -1940,5 +1940,6 @@
             }
         });
     </script>
+<script>if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){fetch("sw.js",{method:"HEAD"}).then(function(r){if(r.ok)navigator.serviceWorker.register("sw.js").catch(function(){});}).catch(function(){});}</script>
 </body>
 </html>
