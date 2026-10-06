@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" href="data:,">
+    <title>Ganancia Real del Repartidor</title>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #eff6ff;
+            --success: #16a34a;
+            --success-light: #f0fdf4;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --radius: 12px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #090d16;
+            --bg-card: #111827;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: #1e3a8a;
+            --success: #22c55e;
+            --success-light: #052e16;
+            --danger: #ef4444;
+            --danger-light: #450a0a;
+            --border: #1f2937;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding-bottom: 110px;
+            min-height: 100vh;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .metric-card.highlight {
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .metric-card.highlight .metric-value {
+            color: var(--accent);
+        }
+
+        .text-danger {
+            color: var(--danger) !important;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 0.85rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.35rem;
+            color: var(--text-main);
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-primary);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Shifts List */
+        .shift-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shift-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .shift-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .shift-net {
+            text-align: right;
+        }
+
+        .shift-net .net-val {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--success);
+        }
+
+        .shift-net .net-val.negative {
+            color: var(--danger);
+        }
+
+        .shift-actions {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .action-link {
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .action-link.danger {
+            color: var(--danger);
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0.25rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+            min-height: 64px;
+            z-index: 100;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 0.2rem 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .nav-item span.icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.1rem;
+            line-height: 1;
+        }
+
+        .nav-item span.label {
+            line-height: 1.1;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: var(--text-main);
+            color: var(--bg-card);
+            padding: 0.65rem 1.25rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Chart simple */
+        .chart-container {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .chart-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .chart-bar-label {
+            width: 85px;
+            color: var(--text-muted);
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chart-bar-track {
+            flex: 1;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            height: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .chart-bar-fill {
+            background: var(--accent);
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s;
+        }
+
+        .chart-bar-val {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Progress bar */
+        .progress-bar-bg {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            height: 16px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar-fill {
+            background: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s;
+        }
+
+        /* App comparison cards */
+        .app-compare-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .app-compare-card.winner {
+            border-color: var(--success);
+            background: var(--success-light);
+        }
+
+        /* Banner demo */
+        .demo-banner {
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Print header info hidden on screen */
+        .print-only-header {
+            display: none;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding-bottom: 0 !important;
+            }
+            header, .bottom-nav, .btn, .btn-group, .action-link, .demo-banner, .hide-print, form, #tab-hoy, #tab-moto, #tab-comparar, #tab-metas, #tab-ajustes {
+                display: none !important;
+            }
+            #tab-resumen {
+                display: block !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin-bottom: 1rem !important;
+            }
+            .print-only-header {
+                display: block !important;
+                margin-bottom: 1rem;
+                border-bottom: 2px solid #000;
+                padding-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hide-print">
+        <div class="header-title">
+            <span>🛵</span>
+            <span>Ganancia Real</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" id="btn-theme" title="Cambiar modo oscuro/claro">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Banner demo de ejemplo -->
+        <div id="demo-banner" class="demo-banner" style="display: none;">
+            <span>ℹ️ Tienes 3 turnos de ejemplo para probar la app.</span>
+            <button class="btn-secondary" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.75rem;" id="btn-borrar-ejemplos">Borrar ejemplos</button>
+        </div>
+
+        <!-- PESTAÑA 1: HOY / REGISTRAR TURNO -->
+        <section id="tab-hoy" class="tab-content active">
+            <div class="card">
+                <div class="card-title">
+                    <span id="form-title">➕ Registrar Turno</span>
+                    <button class="action-link" id="btn-cancel-edit" style="display:none;">Cancelar edición</button>
+                </div>
+                <form id="shift-form">
+                    <input type="hidden" id="shift-id">
+                    
+                    <div class="form-group">
+                        <label for="shift-fecha">Fecha</label>
+                        <input type="date" id="shift-fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shift-app">App / Origen</label>
+                        <select id="shift-app" required>
+                            <option value="DiDi Food">DiDi Food</option>
+                            <option value="Uber Eats">Uber Eats</option>
+                            <option value="Rappi">Rappi</option>
+                            <option value="Pedidos Propios">Pedidos Propios</option>
+                            <option value="Otra">Otra</option>
+                        </select>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-ingresos">Ingresos App ($)</label>
+                            <input type="number" id="shift-ingresos" step="0.5" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-propinas">Propinas ($)</label>
+                            <input type="number" id="shift-propinas" step="0.5" min="0" placeholder="0.00" value="0">
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-km">Kilómetros (km)</label>
+                            <input type="number" id="shift-km" step="0.1" min="0" placeholder="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-horas">Horas trabajadas</label>
+                            <input type="number" id="shift-horas" step="0.25" min="0" max="24" placeholder="0" required>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-gas-litros">Gasolina (Litros opc.)</label>
+                            <input type="number" id="shift-gas-litros" step="0.1" min="0" placeholder="Ej. 3.5">
+                            <div class="hint">Si lo dejas vacío, se calcula con km y tu rendimiento.</div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="shift-gas-precio">Precio gas $/L (opc.)</label>
+                            <input type="number" id="shift-gas-precio" step="0.1" min="0" placeholder="Ej. 24.5">
+                            <div class="hint">Vacío = usa precio por defecto de Mi Moto.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shift-extras">Gastos extra ($)</label>
+                        <input type="number" id="shift-extras" step="0.5" min="0" placeholder="0.00" value="0">
+                        <div class="hint">Comida, estacionamiento, casetas, etc.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shift-nota">Nota / Comentarios</label>
+                        <input type="text" id="shift-nota" placeholder="Ej. Zona centro pesada, buena propina">
+                    </div>
+
+                    <button type="submit" class="btn" id="btn-guardar-turno">💾 Guardar Turno</button>
+                </form>
+            </div>
+
+            <!-- Vista previa en tiempo real del turno actual -->
+            <div class="card" id="live-preview-card">
+                <div class="card-title">⚡ Desglose de este turno (en vivo)</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Ingreso Bruto</div>
+                        <div class="metric-value" id="prev-bruto">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Gasolina</div>
+                        <div class="metric-value" id="prev-gas">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Desgaste Moto</div>
+                        <div class="metric-value" id="prev-desgaste">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Gastos / Fijos</div>
+                        <div class="metric-value" id="prev-gastos">$0.00</div>
+                    </div>
+                </div>
+                <div class="metric-card highlight" style="margin-bottom: 0.75rem;">
+                    <div class="metric-label">Ganancia Neta Real</div>
+                    <div class="metric-value" id="prev-neta" style="font-size: 1.5rem;">$0.00</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Neta por Hora</div>
+                        <div class="metric-value" id="prev-netahora" style="font-size: 1rem;">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Neta por Km</div>
+                        <div class="metric-value" id="prev-netakm" style="font-size: 1rem;">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 Turnos Recientes</div>
+                <div id="shifts-list">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 2: MI MOTO (COSTOS) -->
+        <section id="tab-moto" class="tab-content">
+            <div class="card">
+                <div class="card-title">🏍️ Costos de tu Moto y Operación</div>
+                <p class="hint" style="margin-bottom: 1rem;">Configura los datos reales de tu moto para que los cálculos de desgaste y gasolina sean exactos.</p>
+                
+                <form id="moto-form">
+                    <div class="form-group">
+                        <label for="moto-rendimiento">Rendimiento (km por Litro)</label>
+                        <input type="number" id="moto-rendimiento" step="0.5" min="1" required>
+                        <div class="hint">Ej. 35 km/L (cuántos km recorre tu moto con 1 litro).</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moto-gasprice">Precio de la Gasolina por Defecto ($/L)</label>
+                        <input type="number" id="moto-gasprice" step="0.1" min="1" required>
+                        <div class="hint">Cámbialo por el precio actual de tu gasolinera local.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moto-mantenimiento">Mantenimiento por km ($)</label>
+                        <input type="number" id="moto-mantenimiento" step="0.01" min="0" required>
+                        <div class="hint">Bujías, cadena, balatas prorrateadas por km. Ej. $0.15</div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-llantas-precio">Precio Juego Llantas ($)</label>
+                            <input type="number" id="moto-llantas-precio" step="10" min="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-llantas-km">Duración Llantas (km)</label>
+                            <input type="number" id="moto-llantas-km" step="500" min="100" required>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-aceite-precio">Precio Cambio Aceite ($)</label>
+                            <input type="number" id="moto-aceite-precio" step="10" min="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-aceite-km">Km entre Cambios</label>
+                            <input type="number" id="moto-aceite-km" step="200" min="100" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moto-seguro">Seguro Anual ($)</label>
+                        <input type="number" id="moto-seguro" step="50" min="0" required>
+                        <div class="hint">Costo del seguro de la moto dividido entre el año.</div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-precio-compra">Precio Compra Moto ($)</label>
+                            <input type="number" id="moto-precio-compra" step="500" min="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-valor-reventa">Valor Reventa Futuro ($)</label>
+                            <input type="number" id="moto-valor-reventa" step="500" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moto-vida-util">Vida útil total de la Moto (km)</label>
+                        <input type="number" id="moto-vida-util" step="5000" min="1000" required>
+                        <div class="hint">Ej. 80,000 km antes de cambio mayor o venta.</div>
+                    </div>
+
+                    <div class="metrics-grid" style="margin-bottom: 0.85rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-plan-datos">Plan Celular / Datos Mensual ($)</label>
+                            <input type="number" id="moto-plan-datos" step="10" min="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="moto-otros-fijos">Otros Gastos Fijos Mes ($)</label>
+                            <input type="number" id="moto-otros-fijos" step="10" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="moto-dias-mes">Días trabajados al mes (para prorrateo fijos)</label>
+                        <input type="number" id="moto-dias-mes" step="1" min="1" max="31" required>
+                        <div class="hint">Estándar: 26 días.</div>
+                    </div>
+
+                    <button type="submit" class="btn" style="margin-top: 1rem;">💾 Guardar Costos de Moto</button>
+                </form>
+            </div>
+
+            <!-- Resumen de costos calculados -->
+            <div class="card">
+                <div class="card-title">📊 Tu Costo Real Calculado</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Costo Variable por Km</div>
+                        <div class="metric-value" id="calc-costo-km">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Fijo Prorrateado por Día</div>
+                        <div class="metric-value" id="calc-costo-dia">$0.00</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 3: RESUMEN -->
+        <section id="tab-resumen" class="tab-content">
+            
+            <!-- Encabezado exclusivo para impresión -->
+            <div class="print-only-header">
+                <h2>Ganancia Real — <span id="print-periodo-lbl">Resumen</span></h2>
+                <p>Fecha de impresión: <span id="print-fecha-lbl"></span></p>
+            </div>
+
+            <div class="card">
+                <div class="card-title" style="flex-wrap: wrap; gap: 0.5rem;">
+                    <span>📈 Resumen Financiero</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select id="resumen-modo" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.85rem;">
+                            <option value="dia">Día</option>
+                            <option value="semana" selected>Semana</option>
+                            <option value="mes">Mes</option>
+                            <option value="todo">Histórico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Navegación de periodo con flechas -->
+                <div class="hide-print" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-primary); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1rem;">
+                    <button class="btn-icon" id="btn-periodo-anterior" title="Periodo anterior">◀ Anterior</button>
+                    <span id="periodo-etiqueta" style="font-weight: 600; font-size: 0.9rem; text-align: center;">Semana actual</span>
+                    <button class="btn-icon" id="btn-periodo-siguiente" title="Periodo siguiente">Siguiente ▶</button>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Ingreso Bruto</div>
+                        <div class="metric-value" id="res-bruto">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Propinas</div>
+                        <div class="metric-value" id="res-propinas">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Gasolina</div>
+                        <div class="metric-value" id="res-gas">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Desgaste Moto</div>
+                        <div class="metric-value" id="res-desgaste">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Gastos Extras</div>
+                        <div class="metric-value" id="res-extras">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Fijos Prorrateados</div>
+                        <div class="metric-value" id="res-fijos">$0.00</div>
+                    </div>
+                </div>
+
+                <!-- Turnos, Horas, Km separados -->
+                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1rem;">
+                    <div class="metric-card">
+                        <div class="metric-label">Turnos</div>
+                        <div class="metric-value" id="res-turnos" style="font-size: 1rem;">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Horas</div>
+                        <div class="metric-value" id="res-horas" style="font-size: 1rem;">0.0h</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Kilómetros</div>
+                        <div class="metric-value" id="res-km" style="font-size: 1rem;">0 km</div>
+                    </div>
+                </div>
+
+                <div class="metric-card highlight" style="margin-bottom: 1rem;">
+                    <div class="metric-label">Ganancia Neta Real</div>
+                    <div class="metric-value" id="res-neta" style="font-size: 1.75rem;">$0.00</div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Neta Promedio por Hora</div>
+                        <div class="metric-value" id="res-netahora">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Neta Promedio por Km</div>
+                        <div class="metric-value" id="res-netakm">$0.00</div>
+                    </div>
+                </div>
+
+                <!-- Gráfica simple de barras -->
+                <div style="margin-top: 1.25rem;">
+                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Neta por Día en el Periodo</div>
+                    <div id="chart-dias" class="chart-container">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones de compartir / exportar resumen -->
+            <div class="card hide-print">
+                <div class="card-title">📤 Compartir y Reporte</div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button class="btn" id="btn-wa-semana" style="background-color: #25d366;">💬 Mandar resumen por WhatsApp</button>
+                    <button class="btn btn-secondary" id="btn-copiar-resumen">📋 Copiar texto al portapapeles</button>
+                    <button class="btn btn-secondary" id="btn-imprimir">🖨️ Imprimir / Guardar PDF</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 4: COMPARAR APPS -->
+        <section id="tab-comparar" class="tab-content">
+            <div class="card">
+                <div class="card-title">⚖️ ¿Qué App te Conviene Más?</div>
+                <p class="hint" style="margin-bottom: 1rem;">Comparamos tus turnos del periodo seleccionado actualmente en Resumen para mostrarte qué plataforma te deja más ganancia real.</p>
+                
+                <div id="compare-apps-list">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 5: METAS -->
+        <section id="tab-metas" class="tab-content">
+            <div class="card">
+                <div class="card-title">🎯 Tus Metas de Ganancia Neta</div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="meta-semanal">Meta Semanal Neta ($)</label>
+                    <input type="number" id="meta-semanal" step="100" min="0" placeholder="Ej. 3500">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="meta-mensual">Meta Mensual Neta ($)</label>
+                    <input type="number" id="meta-mensual" step="500" min="0" placeholder="Ej. 15000">
+                </div>
+
+                <button class="btn" id="btn-guardar-metas">💾 Guardar Metas</button>
+            </div>
+
+            <!-- Progreso Semanal -->
+            <div class="card">
+                <div class="card-title">📅 Progreso de la Semana Actual (Lunes - Domingo)</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                    <span id="progreso-semana-txt">$0 de $0</span>
+                    <span id="progreso-semana-pct">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progreso-semana-fill" class="progress-bar-fill"></div>
+                </div>
+                <div id="falta-semana-txt" class="hint" style="margin-top: 0.5rem; font-weight: 500;">—</div>
+            </div>
+
+            <!-- Progreso Mensual -->
+            <div class="card">
+                <div class="card-title">🗓️ Progreso del Mes Actual</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                    <span id="progreso-mes-txt">$0 de $0</span>
+                    <span id="progreso-mes-pct">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progreso-mes-fill" class="progress-bar-fill" style="background-color: var(--accent);"></div>
+                </div>
+                <div id="falta-mes-txt" class="hint" style="margin-top: 0.5rem; font-weight: 500;">—</div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 6: AJUSTES / RESPALDO -->
+        <section id="tab-ajustes" class="tab-content">
+            <div class="card">
+                <div class="card-title">⚙️ Ajustes y Respaldo de Datos</div>
+                <p class="hint" style="margin-bottom: 1.25rem;">Tus datos viven únicamente en tu celular (en este navegador). Respaldalos regularmente para no perder tu historial.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button class="btn btn-secondary" id="btn-exportar-json">📥 Exportar Respaldo (JSON)</button>
+                    <button class="btn btn-secondary" id="btn-exportar-csv">📊 Exportar Turnos (CSV)</button>
+                    
+                    <button class="btn btn-secondary" id="btn-importar-json">📤 Importar Respaldo (JSON)</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+
+                    <hr style="border: none; border-top: 1px solid var(--border); margin: 0.5rem 0;">
+
+                    <button class="btn btn-danger" id="btn-borrar-todo">⚠️ Borrar todos los datos</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">ℹ️ Acerca de Ganancia Real</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                    Esta app calcula tu ganancia neta real restando gasolina, desgaste de moto, mantenimiento y gastos fijos prorrateados. Las cifras son estimaciones basadas en los datos que tú ingresas. Funciona sin internet y tus datos son 100% privados.
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Navegación inferior -->
+    <nav class="bottom-nav hide-print">
+        <button class="nav-item active" data-tab="hoy">
+            <span class="icon">➕</span>
+            <span class="label">Turno</span>
+        </button>
+        <button class="nav-item" data-tab="moto">
+            <span class="icon">🏍️</span>
+            <span class="label">Mi Moto</span>
+        </button>
+        <button class="nav-item" data-tab="resumen">
+            <span class="icon">📈</span>
+            <span class="label">Resumen</span>
+        </button>
+        <button class="nav-item" data-tab="comparar">
+            <span class="icon">⚖️</span>
+            <span class="label">Apps</span>
+        </button>
+        <button class="nav-item" data-tab="metas">
+            <span class="icon">🎯</span>
+            <span class="label">Metas</span>
+        </button>
+        <button class="nav-item" data-tab="ajustes">
+            <span class="icon">⚙️</span>
+            <span class="label">Ajustes</span>
+        </button>
+    </nav>
+
+    <!-- Toast -->
+    <div id="toast">Mensaje de notificación</div>
+
+    <script>
+        // --- MANEJO DE FECHAS LOCALES (MEXICO) ---
+        function hoyLocalStr() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function parseFechaLocal(str) {
+            // str en formato 'YYYY-MM-DD'
+            if (!str) return new Date();
+            const parts = str.split('-');
+            if (parts.length !== 3) return new Date();
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        }
+
+        function formatearFechaLocalStr(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // Estructura de datos por defecto
+        const defaultState = {
+            version: "gananciaReal_v1",
+            moto: {
+                rendimiento: 35, // km/L
+                gasPrice: 24.50, // $/L
+                mantenimientoPorKm: 0.15, // $/km
+                llantasPrecio: 1200,
+                llantasKm: 12000,
+                aceitePrecio: 150,
+                aceiteKm: 2500,
+                seguroAnual: 2400,
+                precioCompra: 35000,
+                valorReventa: 20000,
+                vidaUtil: 80000,
+                planDatos: 200,
+                otrosFijos: 100,
+                diasMes: 26
+            },
+            metas: {
+                semanal: 3500,
+                mensual: 14000
+            },
+            shifts: [
+                {
+                    id: "shift_sample_1",
+                    fecha: hoyLocalStr(),
+                    app: "DiDi Food",
+                    ingresos: 650,
+                    propinas: 80,
+                    km: 45,
+                    horas: 5,
+                    gasLitros: 1.3,
+                    gasPrecio: 24.5,
+                    extras: 30,
+                    nota: "Zona sur, buen clima"
+                },
+                {
+                    id: "shift_sample_2",
+                    fecha: formatearFechaLocalStr(new Date(Date.now() - 86400000)),
+                    app: "Uber Eats",
+                    ingresos: 820,
+                    propinas: 120,
+                    km: 60,
+                    horas: 6,
+                    gasLitros: 0,
+                    gasPrecio: 0,
+                    extras: 40,
+                    nota: "Lluvia ligera, tarifas dinámicas"
+                },
+                {
+                    id: "shift_sample_3",
+                    fecha: formatearFechaLocalStr(new Date(Date.now() - 86400000 * 2)),
+                    app: "Rappi",
+                    ingresos: 540,
+                    propinas: 50,
+                    km: 35,
+                    horas: 4,
+                    gasLitros: 1.0,
+                    gasPrecio: 24.0,
+                    extras: 20,
+                    nota: "Mediodía tranquilo"
+                }
+            ]
+        };
+
+        let state = JSON.parse(localStorage.getItem("gananciaReal_v1")) || defaultState;
+
+        function saveState() {
+            localStorage.setItem("gananciaReal_v1", JSON.stringify(state));
+        }
+
+        // Formateador de moneda es-MX
+        const currencyFormatter = new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        function formatMoney(val) {
+            return currencyFormatter.format(isNaN(val) ? 0 : val);
+        }
+
+        // Toast
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2500);
+        }
+
+        // --- CÁLCULOS FINANCIEROS CLAVE ---
+        function calcularCostosMoto() {
+            const m = state.moto;
+            const llantasKm = m.llantasKm > 0 ? (m.llantasPrecio / m.llantasKm) : 0;
+            const aceiteKm = m.aceiteKm > 0 ? (m.aceitePrecio / m.aceiteKm) : 0;
+            const depKm = m.vidaUtil > 0 ? ((m.precioCompra - m.valorReventa) / m.vidaUtil) : 0;
+            const costoPorKm = m.mantenimientoPorKm + llantasKm + aceiteKm + depKm;
+
+            const fijosMes = (m.seguroAnual / 12) + m.planDatos + m.otrosFijos;
+            const fijoPorDia = m.diasMes > 0 ? (fijosMes / m.diasMes) : 0;
+
+            return { costoPorKm, fijoPorDia };
+        }
+
+        function calcularTurnoDetalle(s, shiftsListContext = state.shifts, editingId = null) {
+            const m = state.moto;
+            const { costoPorKm, fijoPorDia } = calcularCostosMoto();
+
+            // Gasolina
+            let costoGas = 0;
+            const precioL = (s.gasPrecio && s.gasPrecio > 0) ? s.gasPrecio : m.gasPrice;
+            if (s.gasLitros && s.gasLitros > 0) {
+                costoGas = s.gasLitros * precioL;
+            } else {
+                const litrosEst = m.rendimiento > 0 ? (s.km / m.rendimiento) : 0;
+                costoGas = litrosEst * precioL;
+            }
+
+            // Desgaste moto
+            const desgaste = s.km * costoPorKm;
+
+            // Fijo prorrateado al día (contando cuántos turnos hay en esa fecha)
+            // Si estamos editando o simulando, filtramos correctamente los turnos de esa fecha
+            let turnosEseDiaCount = 1;
+            if (shiftsListContext) {
+                const filtradosFecha = shiftsListContext.filter(t => t.fecha === s.fecha && t.id !== s.id && t.id !== editingId);
+                turnosEseDiaCount = filtradosFecha.length + 1; // sumando este turno
+            }
+            const fijoTurno = fijoPorDia / turnosEseDiaCount;
+
+            const extras = s.extras || 0;
+            const ingresosTotal = (s.ingresos || 0) + (s.propinas || 0);
+            
+            const neta = ingresosTotal - costoGas - desgaste - extras - fijoTurno;
+            const netaHora = s.horas > 0 ? (neta / s.horas) : null;
+            const netaKm = s.km > 0 ? (neta / s.km) : null;
+
+            return {
+                bruto: s.ingresos || 0,
+                propinas: s.propinas || 0,
+                costoGas,
+                desgaste,
+                extras,
+                gastosFijos: fijoTurno,
+                neta,
+                netaHora,
+                netaKm
+            };
+        }
+
+        // --- RENDERIZADO Y UI ---
+        
+        // Tema Oscuro/Claro (respeta prefers-color-scheme si no hay guardado)
+        const btnTheme = document.getElementById("btn-theme");
+        const savedTheme = localStorage.getItem("gananciaReal_theme");
+        let initialTheme = savedTheme;
+        if (!initialTheme) {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            initialTheme = prefersDark ? "dark" : "light";
+        }
+        document.body.setAttribute("data-theme", initialTheme);
+        btnTheme.textContent = initialTheme === "dark" ? "☀️" : "🌙";
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", initialTheme === "dark" ? "#111827" : "#2563eb");
+
+        btnTheme.addEventListener("click", () => {
+            const current = document.body.getAttribute("data-theme");
+            const next = current === "dark" ? "light" : "dark";
+            document.body.setAttribute("data-theme", next);
+            localStorage.setItem("gananciaReal_theme", next);
+            btnTheme.textContent = next === "dark" ? "☀️" : "🌙";
+            document.querySelector('meta[name="theme-color"]').setAttribute("content", next === "dark" ? "#111827" : "#2563eb");
+        });
+
+        // Pestañas navegación
+        const navItems = document.querySelectorAll(".nav-item");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        navItems.forEach(item => {
+            item.addEventListener("click", () => {
+                const targetTab = item.getAttribute("data-tab");
+                navItems.forEach(n => n.classList.remove("active"));
+                item.classList.add("active");
+                tabContents.forEach(tc => tc.classList.remove("active"));
+                document.getElementById(`tab-${targetTab}`).classList.add("active");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Inicializar fecha de hoy local en el formulario
+        document.getElementById("shift-fecha").value = hoyLocalStr();
+
+        // Cargar datos de moto en formulario
+        function cargarFormMoto() {
+            const m = state.moto;
+            document.getElementById("moto-rendimiento").value = m.rendimiento;
+            document.getElementById("moto-gasprice").value = m.gasPrice;
+            document.getElementById("moto-mantenimiento").value = m.mantenimientoPorKm;
+            document.getElementById("moto-llantas-precio").value = m.llantasPrecio;
+            document.getElementById("moto-llantas-km").value = m.llantasKm;
+            document.getElementById("moto-aceite-precio").value = m.aceitePrecio;
+            document.getElementById("moto-aceite-km").value = m.aceiteKm;
+            document.getElementById("moto-seguro").value = m.seguroAnual;
+            document.getElementById("moto-precio-compra").value = m.precioCompra;
+            document.getElementById("moto-valor-reventa").value = m.valorReventa;
+            document.getElementById("moto-vida-util").value = m.vidaUtil;
+            document.getElementById("moto-plan-datos").value = m.planDatos;
+            document.getElementById("moto-otros-fijos").value = m.otrosFijos;
+            document.getElementById("moto-dias-mes").value = m.diasMes;
+
+            const { costoPorKm, fijoPorDia } = calcularCostosMoto();
+            document.getElementById("calc-costo-km").textContent = formatMoney(costoPorKm);
+            document.getElementById("calc-costo-dia").textContent = formatMoney(fijoPorDia);
+        }
+        cargarFormMoto();
+
+        // Guardar formulario moto
+        document.getElementById("moto-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const rend = parseFloat(document.getElementById("moto-rendimiento").value);
+            const gasP = parseFloat(document.getElementById("moto-gasprice").value);
+            if (rend <= 0 || gasP <= 0) {
+                showToast("⚠️ Los valores deben ser mayores a 0");
+                return;
+            }
+
+            state.moto = {
+                rendimiento: rend,
+                gasPrice: gasP,
+                mantenimientoPorKm: parseFloat(document.getElementById("moto-mantenimiento").value) || 0,
+                llantasPrecio: parseFloat(document.getElementById("moto-llantas-precio").value) || 0,
+                llantasKm: parseFloat(document.getElementById("moto-llantas-km").value) || 1,
+                aceitePrecio: parseFloat(document.getElementById("moto-aceite-precio").value) || 0,
+                aceiteKm: parseFloat(document.getElementById("moto-aceite-km").value) || 1,
+                seguroAnual: parseFloat(document.getElementById("moto-seguro").value) || 0,
+                precioCompra: parseFloat(document.getElementById("moto-precio-compra").value) || 0,
+                valorReventa: parseFloat(document.getElementById("moto-valor-reventa").value) || 0,
+                vidaUtil: parseFloat(document.getElementById("moto-vida-util").value) || 1,
+                planDatos: parseFloat(document.getElementById("moto-plan-datos").value) || 0,
+                otrosFijos: parseFloat(document.getElementById("moto-otros-fijos").value) || 0,
+                diasMes: parseFloat(document.getElementById("moto-dias-mes").value) || 26
+            };
+            saveState();
+            cargarFormMoto();
+            actualizarTodo();
+            showToast("¡Costos de moto actualizados!");
+        });
+
+        // Cargar Metas
+        document.getElementById("meta-semanal").value = state.metas.semanal;
+        document.getElementById("meta-mensual").value = state.metas.mensual;
+
+        document.getElementById("btn-guardar-metas").addEventListener("click", () => {
+            state.metas.semanal = parseFloat(document.getElementById("meta-semanal").value) || 0;
+            state.metas.mensual = parseFloat(document.getElementById("meta-mensual").value) || 0;
+            saveState();
+            actualizarMetasUI();
+            showToast("¡Metas guardadas con éxito!");
+        });
+
+        // Live preview turno actual
+        function actualizarLivePreview() {
+            const editingId = document.getElementById("shift-id").value || null;
+            const tempShift = {
+                fecha: document.getElementById("shift-fecha").value || hoyLocalStr(),
+                app: document.getElementById("shift-app").value,
+                ingresos: parseFloat(document.getElementById("shift-ingresos").value) || 0,
+                propinas: parseFloat(document.getElementById("shift-propinas").value) || 0,
+                km: parseFloat(document.getElementById("shift-km").value) || 0,
+                horas: parseFloat(document.getElementById("shift-horas").value) || 0,
+                gasLitros: parseFloat(document.getElementById("shift-gas-litros").value) || 0,
+                gasPrecio: parseFloat(document.getElementById("shift-gas-precio").value) || 0,
+                extras: parseFloat(document.getElementById("shift-extras").value) || 0
+            };
+
+            const det = calcularTurnoDetalle(tempShift, state.shifts, editingId);
+            document.getElementById("prev-bruto").textContent = formatMoney(det.bruto + det.propinas);
+            document.getElementById("prev-gas").textContent = formatMoney(det.costoGas);
+            document.getElementById("prev-desgaste").textContent = formatMoney(det.desgaste);
+            document.getElementById("prev-gastos").textContent = formatMoney(det.extras + det.gastosFijos);
+            
+            const netaEl = document.getElementById("prev-neta");
+            netaEl.textContent = formatMoney(det.neta);
+            netaEl.className = "metric-value " + (det.neta < 0 ? "text-danger" : "");
+
+            const nhEl = document.getElementById("prev-netahora");
+            if (det.netaHora !== null) {
+                nhEl.textContent = formatMoney(det.netaHora) + "/h";
+                nhEl.className = "metric-value " + (det.netaHora < 0 ? "text-danger" : "");
+            } else {
+                nhEl.textContent = "—";
+                nhEl.className = "metric-value";
+            }
+
+            const nkEl = document.getElementById("prev-netakm");
+            if (det.netaKm !== null) {
+                nkEl.textContent = formatMoney(det.netaKm) + "/km";
+                nkEl.className = "metric-value " + (det.netaKm < 0 ? "text-danger" : "");
+            } else {
+                nkEl.textContent = "—";
+                nkEl.className = "metric-value";
+            }
+        }
+
+        document.querySelectorAll("#shift-form input, #shift-form select").forEach(el => {
+            el.addEventListener("input", actualizarLivePreview);
+        });
+
+        // Guardar o Actualizar Turno con validación estricta
+        document.getElementById("shift-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const ingresos = parseFloat(document.getElementById("shift-ingresos").value);
+            const propinas = parseFloat(document.getElementById("shift-propinas").value) || 0;
+            const km = parseFloat(document.getElementById("shift-km").value);
+            const horas = parseFloat(document.getElementById("shift-horas").value);
+            const gasLitros = parseFloat(document.getElementById("shift-gas-litros").value) || 0;
+            const gasPrecio = parseFloat(document.getElementById("shift-gas-precio").value) || 0;
+            const extras = parseFloat(document.getElementById("shift-extras").value) || 0;
+
+            if (ingresos < 0 || propinas < 0 || km < 0 || horas < 0 || gasLitros < 0 || gasPrecio < 0 || extras < 0) {
+                showToast("⚠️ No se permiten valores negativos");
+                return;
+            }
+            if (horas > 24) {
+                showToast("⚠️ Las horas no pueden ser mayores a 24");
+                return;
+            }
+
+            const idVal = document.getElementById("shift-id").value;
+            const shiftData = {
+                id: idVal || "shift_" + Date.now(),
+                fecha: document.getElementById("shift-fecha").value || hoyLocalStr(),
+                app: document.getElementById("shift-app").value,
+                ingresos: ingresos,
+                propinas: propinas,
+                km: km,
+                horas: horas,
+                gasLitros: gasLitros,
+                gasPrecio: gasPrecio,
+                extras: extras,
+                nota: document.getElementById("shift-nota").value.trim()
+            };
+
+            if (idVal) {
+                const idx = state.shifts.findIndex(s => s.id === idVal);
+                if (idx !== -1) state.shifts[idx] = shiftData;
+                showToast("Turno actualizado");
+            } else {
+                state.shifts.unshift(shiftData);
+                showToast("¡Turno registrado con éxito!");
+            }
+
+            saveState();
+            limpiarFormTurno();
+            actualizarTodo();
+        });
+
+        document.getElementById("btn-cancel-edit").addEventListener("click", () => {
+            limpiarFormTurno();
+        });
+
+        function limpiarFormTurno() {
+            document.getElementById("shift-id").value = "";
+            document.getElementById("shift-ingresos").value = "";
+            document.getElementById("shift-propinas").value = "0";
+            document.getElementById("shift-km").value = "";
+            document.getElementById("shift-horas").value = "";
+            document.getElementById("shift-gas-litros").value = "";
+            document.getElementById("shift-gas-precio").value = "";
+            document.getElementById("shift-extras").value = "0";
+            document.getElementById("shift-nota").value = "";
+            document.getElementById("shift-fecha").value = hoyLocalStr();
+            document.getElementById("form-title").textContent = "➕ Registrar Turno";
+            document.getElementById("btn-cancel-edit").style.display = "none";
+            document.getElementById("btn-guardar-turno").textContent = "💾 Guardar Turno";
+            actualizarLivePreview();
+        }
+
+        // Editar Turno
+        window.editarTurno = function(id) {
+            const s = state.shifts.find(item => item.id === id);
+            if (!s) return;
+            document.getElementById("shift-id").value = s.id;
+            document.getElementById("shift-fecha").value = s.fecha || hoyLocalStr();
+            document.getElementById("shift-app").value = s.app || "Otra";
+            document.getElementById("shift-ingresos").value = s.ingresos;
+            document.getElementById("shift-propinas").value = s.propinas || 0;
+            document.getElementById("shift-km").value = s.km;
+            document.getElementById("shift-horas").value = s.horas;
+            document.getElementById("shift-gas-litros").value = s.gasLitros || "";
+            document.getElementById("shift-gas-precio").value = s.gasPrecio || "";
+            document.getElementById("shift-extras").value = s.extras || 0;
+            document.getElementById("shift-nota").value = s.nota || "";
+            document.getElementById("form-title").textContent = "✏️ Editar Turno";
+            document.getElementById("btn-cancel-edit").style.display = "inline-block";
+            document.getElementById("btn-guardar-turno").textContent = "💾 Actualizar Turno";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            actualizarLivePreview();
+        };
+
+        // Borrar Turno
+        window.borrarTurno = function(id) {
+            if (confirm("¿Estás seguro de eliminar este turno?")) {
+                state.shifts = state.shifts.filter(s => s.id !== id);
+                saveState();
+                actualizarTodo();
+                showToast("Turno eliminado");
+            }
+        };
+
+        // Banner demo de ejemplos
+        const demoBanner = document.getElementById("demo-banner");
+        function checkDemoBanner() {
+            const hasSample = state.shifts.some(s => s.id.startsWith("shift_sample_"));
+            demoBanner.style.display = hasSample ? "flex" : "none";
+        }
+
+        document.getElementById("btn-borrar-ejemplos").addEventListener("click", () => {
+            state.shifts = state.shifts.filter(s => !s.id.startsWith("shift_sample_"));
+            saveState();
+            actualizarTodo();
+            showToast("Ejemplos eliminados");
+        });
+
+        // --- ESCAPAR HTML ---
+        function escaparHTML(str) {
+            if (!str) return "";
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function renderShiftsList() {
+            const container = document.getElementById("shifts-list");
+            if (state.shifts.length === 0) {
+                container.innerHTML = `<p class="hint" style="text-align: center; padding: 1rem;">No hay turnos registrados aún.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.shifts.slice(0, 15).map(s => {
+                const det = calcularTurnoDetalle(s, state.shifts);
+                const isNeg = det.neta < 0;
+                return `
+                    <div class="shift-item">
+                        <div class="shift-info">
+                            <h4>${escaparHTML(s.fecha)} · <strong>${escaparHTML(s.app)}</strong></h4>
+                            <p>${s.km} km · ${s.horas} hrs ${s.nota ? '· ' + escaparHTML(s.nota) : ''}</p>
+                            <div class="shift-actions">
+                                <button class="action-link" onclick="editarTurno('${s.id}')">Editar</button>
+                                <span>·</span>
+                                <button class="action-link danger" onclick="borrarTurno('${s.id}')">Borrar</button>
+                            </div>
+                        </div>
+                        <div class="shift-net">
+                            <div class="net-val ${isNeg ? 'negative' : ''}">${formatMoney(det.neta)}</div>
+                            <div class="hint">${det.netaHora !== null ? formatMoney(det.netaHora) + '/h' : ''}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- NAVEGACIÓN REAL DE PERIODOS Y FILTRADO ---
+        let periodoOffset = 0; // 0 = periodo actual, -1 = anterior, 1 = siguiente
+        const resumenModo = document.getElementById("resumen-modo");
+
+        resumenModo.addEventListener("change", () => {
+            periodoOffset = 0;
+            actualizarResumen();
+        });
+
+        document.getElementById("btn-periodo-anterior").addEventListener("click", () => {
+            periodoOffset--;
+            actualizarResumen();
+        });
+
+        document.getElementById("btn-periodo-siguiente").addEventListener("click", () => {
+            periodoOffset++;
+            actualizarResumen();
+        });
+
+        // Obtener rango de fechas según modo y offset
+        function obtenerRangoPeriodo() {
+            const modo = resumenModo.value;
+            const now = new Date();
+            
+            if (modo === "dia") {
+                const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + periodoOffset);
+                const str = formatearFechaLocalStr(d);
+                const label = d.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+                return { inicio: str, fin: str, etiqueta: label };
+            } 
+            else if (modo === "semana") {
+                // Semana Lunes a Domingo con offset de semanas
+                const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (periodoOffset * 7));
+                const day = d.getDay(); // 0 is Sunday, 1 is Monday...
+                const diffToMonday = day === 0 ? -6 : 1 - day;
+                const lunes = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMonday);
+                const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+                
+                const inicioStr = formatearFechaLocalStr(lunes);
+                const finStr = formatearFechaLocalStr(domingo);
+                const opt = { month: 'short', day: 'numeric' };
+                const label = `Semana del ${lunes.toLocaleDateString('es-MX', opt)} al ${domingo.toLocaleDateString('es-MX', { ...opt, year: 'numeric' })}`;
+                return { inicio: inicioStr, fin: finStr, etiqueta: label };
+            }
+            else if (modo === "mes") {
+                const targetYear = now.getFullYear();
+                const targetMonth = now.getMonth() + periodoOffset;
+                const primerDia = new Date(targetYear, targetMonth, 1);
+                const ultimoDia = new Date(targetYear, targetMonth + 1, 0);
+
+                const inicioStr = formatearFechaLocalStr(primerDia);
+                const finStr = formatearFechaLocalStr(ultimoDia);
+                const label = primerDia.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+                // Capitalizar mes
+                const labelCap = label.charAt(0).toUpperCase() + label.slice(1);
+                return { inicio: inicioStr, fin: finStr, etiqueta: labelCap };
+            }
+            else {
+                // Histórico
+                return { inicio: "0000-01-01", fin: "9999-12-31", etiqueta: "Histórico Total" };
+            }
+        }
+
+        function filtrarShiftsResumen() {
+            const rango = obtenerRangoPeriodo();
+            document.getElementById("periodo-etiqueta").textContent = rango.etiqueta;
+            return state.shifts.filter(s => s.fecha >= rango.inicio && s.fecha <= rango.fin);
+        }
+
+        function actualizarResumen() {
+            const shiftsFiltrados = filtrarShiftsResumen();
+            
+            let tBruto = 0, tPropinas = 0, tGas = 0, tDesgaste = 0, tExtras = 0, tFijos = 0, tNeta = 0, tHoras = 0, tKm = 0;
+
+            shiftsFiltrados.forEach(s => {
+                const det = calcularTurnoDetalle(s, state.shifts);
+                tBruto += det.bruto;
+                tPropinas += det.propinas;
+                tGas += det.costoGas;
+                tDesgaste += det.desgaste;
+                tExtras += det.extras;
+                tFijos += det.gastosFijos;
+                tNeta += det.neta;
+                tHoras += s.horas || 0;
+                tKm += s.km || 0;
+            });
+
+            document.getElementById("res-bruto").textContent = formatMoney(tBruto + tPropinas);
+            document.getElementById("res-propinas").textContent = formatMoney(tPropinas);
+            document.getElementById("res-gas").textContent = formatMoney(tGas);
+            document.getElementById("res-desgaste").textContent = formatMoney(tDesgaste);
+            document.getElementById("res-extras").textContent = formatMoney(tExtras);
+            document.getElementById("res-fijos").textContent = formatMoney(tFijos);
+            
+            const netaEl = document.getElementById("res-neta");
+            netaEl.textContent = formatMoney(tNeta);
+            netaEl.className = "metric-value " + (tNeta < 0 ? "text-danger" : "");
+
+            document.getElementById("res-turnos").textContent = shiftsFiltrados.length;
+            document.getElementById("res-horas").textContent = tHoras.toFixed(1) + "h";
+            document.getElementById("res-km").textContent = tKm.toFixed(1) + " km";
+
+            const promHora = tHoras > 0 ? (tNeta / tHoras) : null;
+            const promKm = tKm > 0 ? (tNeta / tKm) : null;
+
+            const nhEl = document.getElementById("res-netahora");
+            if (promHora !== null) {
+                nhEl.textContent = formatMoney(promHora) + "/h";
+                nhEl.className = "metric-value " + (promHora < 0 ? "text-danger" : "");
+            } else {
+                nhEl.textContent = "—";
+                nhEl.className = "metric-value";
+            }
+
+            const nkEl = document.getElementById("res-netakm");
+            if (promKm !== null) {
+                nkEl.textContent = formatMoney(promKm) + "/km";
+                nkEl.className = "metric-value " + (promKm < 0 ? "text-danger" : "");
+            } else {
+                nkEl.textContent = "—";
+                nkEl.className = "metric-value";
+            }
+
+            // Datos para imprimir
+            document.getElementById("print-periodo-lbl").textContent = document.getElementById("periodo-etiqueta").textContent;
+            document.getElementById("print-fecha-lbl").textContent = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            renderGraficaDias(shiftsFiltrados);
+            actualizarComparacionApps(shiftsFiltrados);
+        }
+
+        function renderGraficaDias(shifts) {
+            const container = document.getElementById("chart-dias");
+            if (shifts.length === 0) {
+                container.innerHTML = `<p class="hint" style="text-align:center;">Sin datos en este periodo.</p>`;
+                return;
+            }
+
+            const porDia = {};
+            shifts.forEach(s => {
+                if (!porDia[s.fecha]) porDia[s.fecha] = 0;
+                const det = calcularTurnoDetalle(s, state.shifts);
+                porDia[s.fecha] += det.neta;
+            });
+
+            const fechasOrdenadas = Object.keys(porDia).sort();
+            const maxVal = Math.max(...Object.values(porDia).map(v => Math.abs(v)), 100);
+
+            container.innerHTML = fechasOrdenadas.map(fecha => {
+                const val = porDia[fecha];
+                const pct = Math.max(Math.min((Math.abs(val) / maxVal) * 100, 100), 4);
+                return `
+                    <div class="chart-bar-row">
+                        <div class="chart-bar-label">${escaparHTML(fecha.substring(5))}</div>
+                        <div class="chart-bar-track">
+                            <div class="chart-bar-fill" style="width: ${pct}%; background: ${val >= 0 ? 'var(--success)' : 'var(--danger)'};"></div>
+                            <div class="chart-bar-val">${formatMoney(val)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Comparar Apps (usa los shifts filtrados del periodo actual)
+        function actualizarComparacionApps(shiftsFiltrados) {
+            const container = document.getElementById("compare-apps-list");
+
+            if (shiftsFiltrados.length === 0) {
+                container.innerHTML = `<p class="hint" style="text-align: center;">No hay turnos para comparar en este periodo.</p>`;
+                return;
+            }
+
+            const appsMap = {};
+            shiftsFiltrados.forEach(s => {
+                const appName = s.app || "Otra";
+                if (!appsMap[appName]) {
+                    appsMap[appName] = { bruto: 0, propinas: 0, neta: 0, horas: 0, km: 0, turnos: 0 };
+                }
+                const det = calcularTurnoDetalle(s, state.shifts);
+                appsMap[appName].bruto += det.bruto;
+                appsMap[appName].propinas += det.propinas;
+                appsMap[appName].neta += det.neta;
+                appsMap[appName].horas += s.horas || 0;
+                appsMap[appName].km += s.km || 0;
+                appsMap[appName].turnos += 1;
+            });
+
+            let mejorApp = "";
+            let mejorNetaHora = -999999;
+
+            const appsArray = Object.keys(appsMap).map(name => {
+                const data = appsMap[name];
+                const netaHora = data.horas > 0 ? (data.neta / data.horas) : null;
+                const netaKm = data.km > 0 ? (data.neta / data.km) : null;
+                
+                if (netaHora !== null && netaHora > mejorNetaHora) {
+                    mejorNetaHora = netaHora;
+                    mejorApp = name;
+                }
+
+                return { name, ...data, netaHora, netaKm };
+            });
+
+            container.innerHTML = appsArray.map(a => {
+                const isWinner = a.name === mejorApp;
+                const isNegNh = a.netaHora !== null && a.netaHora < 0;
+                const isNegNk = a.netaKm !== null && a.netaKm < 0;
+                return `
+                    <div class="app-compare-card ${isWinner ? 'winner' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong>${escaparHTML(a.name)}</strong> ${isWinner ? '⭐ <span>(Más conveniente)</span>' : ''}
+                        </div>
+                        <div class="metrics-grid" style="margin-bottom: 0.5rem;">
+                            <div class="metric-card">
+                                <div class="metric-label">Neta / Hora</div>
+                                <div class="metric-value ${isNegNh ? 'text-danger' : ''}" style="font-size: 1rem;">${a.netaHora !== null ? formatMoney(a.netaHora) : '—'}</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Neta / Km</div>
+                                <div class="metric-value ${isNegNk ? 'text-danger' : ''}" style="font-size: 1rem;">${a.netaKm !== null ? formatMoney(a.netaKm) : '—'}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>Turnos: ${a.turnos} (${a.horas.toFixed(1)}h)</span>
+                            <span>Total Neta: <strong>${formatMoney(a.neta)}</strong></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Metas Progreso (Semana Lunes-Domingo actual y Mes actual con fecha local)
+        function actualizarMetasUI() {
+            const now = new Date();
+            // Semana Lunes a Domingo actual local
+            const day = now.getDay();
+            const diffToMonday = day === 0 ? -6 : 1 - day;
+            const lunes = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+            const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+            const inicioSemStr = formatearFechaLocalStr(lunes);
+            const finSemStr = formatearFechaLocalStr(domingo);
+
+            const shiftsSemana = state.shifts.filter(s => s.fecha >= inicioSemStr && s.fecha <= finSemStr);
+            let netaSemana = 0, horasSemana = 0;
+            shiftsSemana.forEach(s => {
+                const det = calcularTurnoDetalle(s, state.shifts);
+                netaSemana += det.neta;
+                horasSemana += s.horas || 0;
+            });
+
+            const metaSem = state.metas.semanal || 1;
+            const pctSem = Math.min(Math.round((netaSemana / metaSem) * 100), 100);
+            document.getElementById("progreso-semana-txt").textContent = `${formatMoney(netaSemana)} de ${formatMoney(state.metas.semanal)}`;
+            document.getElementById("progreso-semana-pct").textContent = pctSem + "%";
+            document.getElementById("progreso-semana-fill").style.width = pctSem + "%";
+
+            const faltaSem = state.metas.semanal - netaSemana;
+            const netaHoraProm = horasSemana > 0 ? (netaSemana / horasSemana) : 0;
+            if (faltaSem > 0 && netaHoraProm > 0) {
+                const horasFalta = faltaSem / netaHoraProm;
+                document.getElementById("falta-semana-txt").textContent = `Te faltan ${formatMoney(faltaSem)} (aprox. ${horasFalta.toFixed(1)} horas de trabajo).`;
+            } else if (faltaSem <= 0) {
+                document.getElementById("falta-semana-txt").textContent = `🎉 ¡Meta semanal cumplida con éxito!`;
+            } else {
+                document.getElementById("falta-semana-txt").textContent = `Te faltan ${formatMoney(faltaSem)}.`;
+            }
+
+            // Mes actual local
+            const mesActualStr = formatearFechaLocalStr(now).substring(0, 7); // YYYY-MM
+            const shiftsMes = state.shifts.filter(s => s.fecha.startsWith(mesActualStr));
+            let netaMes = 0, horasMes = 0;
+            shiftsMes.forEach(s => {
+                const det = calcularTurnoDetalle(s, state.shifts);
+                netaMes += det.neta;
+                horasMes += s.horas || 0;
+            });
+
+            const metaMes = state.metas.mensual || 1;
+            const pctMes = Math.min(Math.round((netaMes / metaMes) * 100), 100);
+            document.getElementById("progreso-mes-txt").textContent = `${formatMoney(netaMes)} de ${formatMoney(state.metas.mensual)}`;
+            document.getElementById("progreso-mes-pct").textContent = pctMes + "%";
+            document.getElementById("progreso-mes-fill").style.width = pctMes + "%";
+
+            const faltaMes = state.metas.mensual - netaMes;
+            const netaHoraMes = horasMes > 0 ? (netaMes / horasMes) : 0;
+            if (faltaMes > 0 && netaHoraMes > 0) {
+                const horasFaltaMes = faltaMes / netaHoraMes;
+                document.getElementById("falta-mes-txt").textContent = `Te faltan ${formatMoney(faltaMes)} (aprox. ${horasFaltaMes.toFixed(1)} horas al ritmo actual).`;
+            } else if (faltaMes <= 0) {
+                document.getElementById("falta-mes-txt").textContent = `🏆 ¡Meta mensual superada!`;
+            } else {
+                document.getElementById("falta-mes-txt").textContent = `Te faltan ${formatMoney(faltaMes)}.`;
+            }
+        }
+
+        // Actualizar todo
+        function actualizarTodo() {
+            checkDemoBanner();
+            renderShiftsList();
+            actualizarResumen();
+            actualizarMetasUI();
+        }
+        actualizarTodo();
+
+        // --- COMPARTIR Y ACCIONES (usa el periodo actual) ---
+        function generarTextoResumenWhatsApp() {
+            const shiftsFiltrados = filtrarShiftsResumen();
+            let tBruto = 0, tNeta = 0, tHoras = 0, tKm = 0;
+            shiftsFiltrados.forEach(s => {
+                const det = calcularTurnoDetalle(s, state.shifts);
+                tBruto += det.bruto + det.propinas;
+                tNeta += det.neta;
+                tHoras += s.horas || 0;
+                tKm += s.km || 0;
+            });
+            const netaHora = tHoras > 0 ? tNeta / tHoras : 0;
+            const periodoLabel = document.getElementById("periodo-etiqueta").textContent;
+
+            return `🛵 *Mi Resumen - Ganancia Real*\n` +
+                   `📊 Periodo: ${periodoLabel}\n` +
+                   `💵 Ingreso Bruto: ${formatMoney(tBruto)}\n` +
+                   `💰 Ganancia Neta Real: *${formatMoney(tNeta)}*\n` +
+                   `⏱️ Turnos: ${shiftsFiltrados.length} | Horas: ${tHoras.toFixed(1)}h | Km: ${tKm.toFixed(1)}km\n` +
+                   `⚡ Neta / Hora: ${formatMoney(netaHora)}/h\n` +
+                   `_Calculado con la app Ganancia Real_`;
+        }
+
+        document.getElementById("btn-wa-semana").addEventListener("click", () => {
+            const txt = generarTextoResumenWhatsApp();
+            const url = `https://wa.me/?text=${encodeURIComponent(txt)}`;
+            window.open(url, '_blank');
+        });
+
+        document.getElementById("btn-copiar-resumen").addEventListener("click", () => {
+            const txt = generarTextoResumenWhatsApp();
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast("¡Texto copiado al portapapeles!");
+            }).catch(() => {
+                showToast("No se pudo copiar");
+            });
+        });
+
+        document.getElementById("btn-imprimir").addEventListener("click", () => {
+            window.print();
+        });
+
+        // --- AJUSTES Y RESPALDO ---
+        document.getElementById("btn-exportar-json").addEventListener("click", () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `respaldo_ganancia_real_${hoyLocalStr()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast("Respaldo JSON exportado");
+        });
+
+        document.getElementById("btn-exportar-csv").addEventListener("click", () => {
+            if (state.shifts.length === 0) {
+                showToast("No hay turnos para exportar");
+                return;
+            }
+            let csv = "ID,Fecha,App,Ingresos,Propinas,Km,Horas,GasLitros,GasPrecio,Extras,Nota\n";
+            state.shifts.forEach(s => {
+                csv += `"${s.id}","${s.fecha || ''}","${s.app || ''}",${s.ingresos || 0},${s.propinas || 0},${s.km || 0},${s.horas || 0},${s.gasLitros || 0},${s.gasPrecio || 0},${s.extras || 0},"${(s.nota || "").replace(/"/g, '""')}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", url);
+            dlAnchor.setAttribute("download", `turnos_repartidor_${hoyLocalStr()}.csv`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast("Turnos CSV exportados");
+        });
+
+        // Botón Importar con id="btn-importar-json"
+        document.getElementById("btn-importar-json").addEventListener("click", () => {
+            document.getElementById("import-file-input").click();
+        });
+
+        document.getElementById("import-file-input").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (imported && imported.version && Array.isArray(imported.shifts) && imported.moto) {
+                        // Validar y sanitizar turnos importados
+                        const sanitizedShifts = imported.shifts.map(s => ({
+                            id: String(s.id || "shift_" + Math.random()),
+                            fecha: String(s.fecha || hoyLocalStr()),
+                            app: String(s.app || "Otra"),
+                            ingresos: parseFloat(s.ingresos) || 0,
+                            propinas: parseFloat(s.propinas) || 0,
+                            km: parseFloat(s.km) || 0,
+                            horas: parseFloat(s.horas) || 0,
+                            gasLitros: parseFloat(s.gasLitros) || 0,
+                            gasPrecio: parseFloat(s.gasPrecio) || 0,
+                            extras: parseFloat(s.extras) || 0,
+                            nota: String(s.nota || "")
+                        }));
+
+                        if (confirm("¿Estás seguro de importar este respaldo? Reemplazará tus datos actuales.")) {
+                            state.shifts = sanitizedShifts;
+                            if (imported.moto) {
+                                state.moto = {
+                                    rendimiento: parseFloat(imported.moto.rendimiento) || 35,
+                                    gasPrice: parseFloat(imported.moto.gasPrice) || 24.5,
+                                    mantenimientoPorKm: parseFloat(imported.moto.mantenimientoPorKm) || 0.15,
+                                    llantasPrecio: parseFloat(imported.moto.llantasPrecio) || 1200,
+                                    llantasKm: parseFloat(imported.moto.llantasKm) || 12000,
+                                    aceitePrecio: parseFloat(imported.moto.aceitePrecio) || 150,
+                                    aceiteKm: parseFloat(imported.moto.aceiteKm) || 2500,
+                                    seguroAnual: parseFloat(imported.moto.seguroAnual) || 2400,
+                                    precioCompra: parseFloat(imported.moto.precioCompra) || 35000,
+                                    valorReventa: parseFloat(imported.moto.valorReventa) || 20000,
+                                    vidaUtil: parseFloat(imported.moto.vidaUtil) || 80000,
+                                    planDatos: parseFloat(imported.moto.planDatos) || 200,
+                                    otrosFijos: parseFloat(imported.moto.otrosFijos) || 100,
+                                    diasMes: parseFloat(imported.moto.diasMes) || 26
+                                };
+                            }
+                            if (imported.metas) {
+                                state.metas = {
+                                    semanal: parseFloat(imported.metas.semanal) || 3500,
+                                    mensual: parseFloat(imported.metas.mensual) || 14000
+                                };
+                            }
+                            saveState();
+                            cargarFormMoto();
+                            document.getElementById("meta-semanal").value = state.metas.semanal;
+                            document.getElementById("meta-mensual").value = state.metas.mensual;
+                            actualizarTodo();
+                            showToast("¡Respaldo importado con éxito!");
+                        }
+                    } else {
+                        alert("El archivo no tiene el formato correcto de Ganancia Real.");
+                    }
+                } catch (err) {
+                    alert("Error al leer el archivo JSON.");
+                }
+                e.target.value = "";
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById("btn-borrar-todo").addEventListener("click", () => {
+            if (confirm("⚠️ ATENCIÓN: ¿Borrar TODOS tus turnos y ajustes? Esta acción no se puede deshacer a menos que tengas un respaldo.")) {
+                if (confirm("Confirma por segunda vez que deseas vaciar todos los datos de la aplicación:")) {
+                    state = {
+                        version: "gananciaReal_v1",
+                        moto: defaultState.moto,
+                        metas: defaultState.metas,
+                        shifts: []
+                    };
+                    saveState();
+                    cargarFormMoto();
+                    actualizarTodo();
+                    showToast("Se han borrado todos los datos.");
+                }
+            }
+        });
+    </script>
+</body>
+</html>
